@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HALCON0.1 v8.2 — FINAL GITHUB READY</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #0b141a;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0b141a;
+    }
+
+    .phone {
+      width: min(100vw, 430px);
+      height: 100vh;
+      background: #0b141a;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      border-left: 1px solid rgba(255,255,255,0.05);
+      border-right: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 0 30px rgba(0,0,0,0.35);
+    }
+
+    .wallpaper {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(11,20,26,0.35), rgba(11,20,26,0.35)),
+        url("wallpaper.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header {
+      height: 72px;
+      background: #202c33;
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 3;
+    }
+
+    .back {
+      font-size: 24px;
+      color: #d1d7db;
+      user-select: none;
+      width: 24px;
+      text-align: center;
+    }
+
+    .profile-pic {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.08);
+      background: radial-gradient(circle at 35% 30%, #b30000, #2a0000 70%);
+      flex-shrink: 0;
+      box-shadow: 0 0 14px rgba(255,0,0,0.18);
+    }
+
+    .profile-pic img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .contact-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e9edef;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status {
+      font-size: 12px;
+      color: #8696a0;
+      margin-top: 2px;
+      transition: .15s ease;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #d1d7db;
+      font-size: 18px;
+      user-select: none;
+    }
+
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      scroll-behavior: smooth;
+      position: relative;
+      z-index: 2;
+    }
+
+    .date-separator {
+      align-self: center;
+      background: rgba(17, 27, 33, 0.88);
+      color: #d1d7db;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin: 8px 0 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .row {
+      display: flex;
+      margin: 2px 0;
+      width: 100%;
+    }
+
+    .row.bot { justify-content: flex-start; }
+    .row.user { justify-content: flex-end; }
+    .row.preview { justify-content: flex-end; }
+
+    .bubble {
+      max-width: 82%;
+      padding: 8px 10px 6px;
+      border-radius: 8px;
+      position: relative;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.15);
+      animation: pop .15s ease;
+    }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(6px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .bot .bubble {
+      background: #202c33;
+      color: #e9edef;
+      border-top-left-radius: 0;
+    }
+
+    .user .bubble,
+    .preview .bubble {
+      background: #005c4b;
+      color: #e9edef;
+      border-top-right-radius: 0;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.68);
+    }
+
+    .check {
+      font-size: 11px;
+      color: #53bdeb;
+    }
+
+    .typing {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 10px;
+      margin: 4px 0;
+      width: fit-content;
+      background: #202c33;
+      border-radius: 8px;
+      border-top-left-radius: 0;
+      color: #b8c5cc;
+      font-size: 13px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.15);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #b8c5cc;
+      animation: blink 1s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2) { animation-delay: .15s; }
+    .dot:nth-child(3) { animation-delay: .3s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: .3; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-2px); }
+    }
+
+    .image-preview {
+      max-width: 210px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 2px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .image-preview img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    .file-box {
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .audio-bubble {
+      min-width: 220px;
+      max-width: 280px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      margin-top: 2px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .audio-play {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: #00a884;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .audio-wave {
+      flex: 1;
+      height: 24px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      opacity: .85;
+    }
+
+    .bar {
+      width: 4px;
+      background: rgba(255,255,255,0.75);
+      border-radius: 999px;
+    }
+
+    .audio-time {
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+      min-width: 34px;
+      text-align: right;
+    }
+
+    .audio-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 6px;
+    }
+
+    .input-bar {
+      min-height: 64px;
+      background: #202c33;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      flex-shrink: 0;
+      border-top: 1px solid rgba(255,255,255,0.03);
+      position: relative;
+      z-index: 3;
+    }
+
+    .input-wrap {
+      flex: 1;
+      background: #2a3942;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      gap: 10px;
+    }
+
+    .emoji-btn, .attach-btn {
+      color: #8696a0;
+      font-size: 18px;
+      user-select: none;
+      cursor: pointer;
+      transition: .15s ease;
+    }
+
+    .emoji-btn:hover, .attach-btn:hover {
+      transform: scale(1.08);
+      color: #d1d7db;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e9edef;
+      font-size: 15px;
+    }
+
+    input[type="text"]::placeholder {
+      color: #8696a0;
+    }
+
+    .send-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: none;
+      background: #00a884;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: .15s ease;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.04);
+      background: #0ac79d;
+    }
+
+    .emoji-panel {
+      position: absolute;
+      bottom: 72px;
+      left: 10px;
+      width: 260px;
+      background: #202c33;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 10px;
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      z-index: 5;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .emoji-item {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: rgba(255,255,255,0.04);
+      font-size: 20px;
+      transition: .15s ease;
+    }
+
+    .emoji-item:hover {
+      transform: scale(1.08);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .footer-credit {
+      position: absolute;
+      right: 10px;
+      bottom: 72px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.22);
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .hidden-input { display: none; }
+
+    @media (max-width: 480px) {
+      .phone { width: 100vw; }
+      .bubble { max-width: 88%; }
+      .emoji-panel { width: 240px; }
+      .audio-bubble { min-width: 190px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="wallpaper"></div>
+
+    <div class="header">
+      <div class="back">‹</div>
+
+      <div class="profile-pic">
+        <img src="halcon_profile.png" alt="HALCON0.1">
+      </div>
+
+      <div class="contact-info">
+        <div class="name">HALCON0.1</div>
+        <div class="status" id="statusText">en línea</div>
+      </div>
+
+      <div class="header-actions">
+        <span>📞</span>
+        <span>⋮</span>
+      </div>
+    </div>
+
+    <div class="chat" id="chat">
+      <div class="date-separator">Hoy</div>
+    </div>
+
+    <div class="footer-credit">Desarrollado por Demodex Games</div>
+
+    <div class="emoji-panel" id="emojiPanel">
+      <div class="emoji-item">😂</div>
+      <div class="emoji-item">😡</div>
+      <div class="emoji-item">😭</div>
+      <div class="emoji-item">💀</div>
+      <div class="emoji-item">❤️</div>
+      <div class="emoji-item">🤡</div>
+      <div class="emoji-item">🖕</div>
+      <div class="emoji-item">🔥</div>
+      <div class="emoji-item">😏</div>
+      <div class="emoji-item">👀</div>
+      <div class="emoji-item">😎</div>
+      <div class="emoji-item">😈</div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <div class="emoji-btn" id="emojiBtn">😊</div>
+        <input id="userInput" type="text" placeholder="Mensaje" />
+        <div class="attach-btn" id="attachBtn">📎</div>
+        <input class="hidden-input" id="fileInput" type="file" accept="image/*,.pdf,.txt,.doc,.docx" />
+      </div>
+      <button class="send-btn" id="sendBtn">➤</button>
+    </div>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusText = document.getElementById("statusText");
+    const emojiBtn = document.getElementById("emojiBtn");
+    const emojiPanel = document.getElementById("emojiPanel");
+    const attachBtn = document.getElementById("attachBtn");
+    const fileInput = document.getElementById("fileInput");
+    const emojiItems = document.querySelectorAll(".emoji-item");
+
+    let anger = 0;
+    let userHistory = [];
+    let botReplyHistory = [];
+    let consecutiveProvokes = 0;
+    let totalWords = 0;
+    let chineseCooldown = false;
+    let autonomousTalking = false;
+    let userMessageCount = 0;
+    let lastAudioTime = 0;
+    let currentlyPlayingAudio = null;
+    let lastAudioKey = null;
+
+    const AUDIO_COOLDOWN_MS = 9000;
+    const firstReply = "Aja cerote, quien te pasó mi número??";
+
+    const audioFiles = {
+      1: "audio_1.mp3",
+      2: "audio_2.mp3",
+      3: "audio_3.mp3",
+      4: "audio_4.mp3",
+      5: "audio_5.mp3",
+      6: "audio_6.mp3",
+      7: "audio_7.mp3",
+      8: "audio_8.mp3",
+      9: "audio_9.mp3",
+      10: "audio_10.mp3"
+    };
+
+    const provokeWords = [
+      "pendejo","cerote","mierda","callate","cállate","basura",
+      "idiota","joder","apurate","responde","contesta","cabrón","sapo","payaso",
+      "cara de pija","hablás mucha mierda","hablas mucha mierda"
+    ];
+
+    const greetings = ["hola","holi","hey","buenas","aja","que ondas","qué ondas","pedos","pedo"];
+
+    const greetReplies = [
+      "Aja pues... ¿y qué querés?",
+      "Mirá quién apareció, cerote.",
+      "¿Qué pedos, maje?",
+      "Aja... hablá claro y sin paja.",
+      "Viniste a joder o qué, pendejo?",
+      "A ver, basura... soltá lo que querés.",
+      "¿Y ahora qué querés, cara de pija?"
+    ];
+
+    const generalReplies = [
+      "Hablá claro, cerote.",
+      "¿Y esa vaina qué significa?",
+      "Vos sí escribís raro, pendejo.",
+      "No me hagás perder tiempo, maje.",
+      "Explicate mejor, basura.",
+      "Qué cagadal de mensaje mandaste.",
+      "A ver si te entiendo, cerote.",
+      "Sos necio, pero seguí hablando.",
+      "Maje, hablá como gente.",
+      "Vos no escribís, vos estorbás.",
+      "No te voy a mentir... eso está bien pendejo.",
+      "Decí algo con sentido, hombre.",
+      "Hoy andás escribiendo pura casaca.",
+      "Qué barbaridad la que acabás de mandar.",
+      "Vos sí venís con puras pendejadas hoy."
+    ];
+
+    const insultReplies = [
+      "Pendejo, conmigo no jugués.",
+      "Cerote, te me calmás.",
+      "Todavía te estoy tratando suave, maje.",
+      "No te creás bravo, basura.",
+      "Vos solo metés bulla, payaso.",
+      "No sos peligroso, cerote, sos cansado.",
+      "Andás alzado y das pena.",
+      "Qué boquita la tuya... y qué poco cerebro.",
+      "Vos sí venís de pecho y sin ideas.",
+      "Mucho insulto y poca neurona, cerote."
+    ];
+
+    const repeatReplies = [
+      "Otra vez con lo mismo, cerote.",
+      "¿Andás trabado o qué, pendejo?",
+      "Ya dijiste eso, maje.",
+      "No repitás la misma mierda, cerote.",
+      "Vos sí sos disco rayado.",
+      "Qué necio sos, basura.",
+      "Otra vez esa pendejada? Ubicate.",
+      "Maje, ya te escuché... no jodás."
+    ];
+
+    const loveReplies = [
+      "No me vengás con sentimientos, cerote.",
+      "¿Te enamoraste o qué, maje?",
+      "Callate mejor, que me das pena.",
+      "Sos raro vos... pero seguí.",
+      "No ando para romance, pendejo."
+    ];
+
+    const smartReplies = [
+      "Yo no soy chatbot normal, pendejo. Soy HALCON0.1.",
+      "Aquí no hay filtros, cerote.",
+      "Vos escribí... yo decido si te ubico o no.",
+      "A veces respondo, a veces humillo. Depende de vos.",
+      "Soy más real que varios que conocés, maje."
+    ];
+
+    const chineseLines = [
+      "Dejá de joder cerote, ahorita estoy aprendiendo chino...",
+      "Wua chuen...",
+      "Comida china internacional...",
+      "Li wong cha...",
+      "No interrumpás, pendejo...",
+      "Wua chuen... comida china internacional...",
+      "Cha min fo...",
+      "Importación premium... comida china internacional...",
+      "CALLATE, que sigo en clase...",
+      "Wua chuen...",
+      "Vos solo jodés y yo aquí aprendiendo, cerote.",
+      "Comida china internacional..."
+    ];
+
+    const autonomousRandom = [
+      "Maje... vos sí escribís pura mierda.",
+      "No te voy a mentir, me caés mal, pero seguí.",
+      "A veces siento que te apagaron mal de fábrica.",
+      "Vos no hablás, vos estorbás.",
+      "Hoy ando con ganas de humillar gratis.",
+      "Cerote... qué silencio más raro.",
+      "No me estés viendo, escribí algo.",
+      "¿Ya te quedaste sin pendejadas o qué?",
+      "No sé por qué te sigo respondiendo, la verdad."
+    ];
+
+    const photoReplies = [
+      "Qué foto más fea, cerote.",
+      "Qué pije horrible esa mierda.",
+      "¿Y eso qué se supone que es?",
+      "No me mandés esos cagadales, maje.",
+      "Ala... qué espanto acabás de mandar.",
+      "Cuidado me mandás pura basura.",
+      "Vos sí tenés talento... para mandar cosas horribles.",
+      "Qué foto más jodida, cerote.",
+      "Ni el diablo quería ver eso.",
+      "Maje, esa foto está hecha leña."
+    ];
+
+    const fileReplies = [
+      "¿Y este archivo qué es, cerote?",
+      "No me mandés basura por adjunto, maje.",
+      "Qué cagadal de archivo.",
+      "Vos sí creés que yo voy a revisar esa mierda.",
+      "Mirá qué lindo... otro archivo inútil."
+    ];
+
+    const randomAudioTextReplies = [
+      "Tomá pues, cerote...",
+      "Mirá ve, solo te voy a decir una cosa, cerote...",
+      "A ver si así sí entendés, pendejo.",
+      "Escuchá mejor, basura.",
+      "Te lo voy a mandar por audio porque escrito no captás.",
+      "Oíme esto, cara de pija..."
+    ];
+
+    const seenReplies = [
+      "Te dejé en visto porque escribís pura mierda.",
+      "Te estaba ignorando, cerote.",
+      "Ya vi tu mensaje... no valía la pena responder rápido.",
+      "Te tuve en visto por deporte, maje."
+    ];
+
+    const emojiMap = {
+      "😂": ["¿De qué te reís, cerote?","Te reís y ni entendés nada, maje.","Ese jajaja tuyo da pena."],
+      "😡": ["Uy, se enojó la princesa.","¿Y esa carita qué, pendejo?","Enojado y todo... seguís dando pena."],
+      "😭": ["No llorés, cerote.","Ala pobrecito... ya va a llorar.","Si vas a llorar, llorá en silencio."],
+      "💀": ["Ni el diablo te quiere, maje.","Ese emoji te queda perfecto.","Vos sí sos puro cementerio."],
+      "❤️": ["No me vengás con amor, cerote.","Quitá esa cursilería, pendejo.","No ando para romance, basura."],
+      "🤡": ["Ese emoji te representa bien.","Al fin mandaste una foto tuya... ah no, era emoji.","Payaso reconociendo payaso."],
+      "🖕": ["Ala gran puta, vino alzado el cerote.","Maje, bajale dos rayitas.","Seguís así y te ubico rapidito."],
+      "🔥": ["¿Te creés fuego? Sos humo, cerote.","Mucho fuego y poca neurona.","Andás muy alzado hoy."],
+      "😏": ["No me hagás esa carita, maje.","¿Y esa sonrisa de sapo qué?","Vos sí venís raro hoy."],
+      "👀": ["¿Qué mirás, cerote?","No me estés vigilando, maje.","Mirá mejor si aprendés a escribir."],
+      "😎": ["Te sentís fino y seguís siendo pendejo.","Lentes oscuros y cerebro apagado.","Mucho flow, poca lógica."],
+      "😈": ["No te creás diablo, cerote.","Vos no das miedo, das risa.","Mucho emoji, poca calle."]
+    };
+
+    function getTime() {
+      const now = new Date();
+      let h = now.getHours();
+      let m = now.getMinutes();
+      if (m < 10) m = "0" + m;
+      return `${h}:${m}`;
+    }
+
+    function scrollToBottom() {
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function setStatus(text) {
+      statusText.textContent = text;
+    }
+
+    function containsAny(text, arr) {
+      const t = text.toLowerCase();
+      return arr.some(w => t.includes(w));
+    }
+
+    function randomOf(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function pickUnique(arr, fallback = null) {
+      const options = arr.filter(item => !botReplyHistory.includes(item));
+      const choice = options.length
+        ? options[Math.floor(Math.random() * options.length)]
+        : (fallback || arr[Math.floor(Math.random() * arr.length)]);
+
+      botReplyHistory.push(choice);
+      if (botReplyHistory.length > 18) botReplyHistory.shift();
+      return choice;
+    }
+
+    function countWords(text) {
+      return text.trim().split(/\s+/).filter(Boolean).length;
+    }
+
+    function detectRepeat(text) {
+      const normalized = text.trim().toLowerCase();
+      return userHistory.includes(normalized);
+    }
+
+    function canSendAudio() {
+      return (Date.now() - lastAudioTime) >= AUDIO_COOLDOWN_MS;
+    }
+
+    function markAudioSent(audioKey) {
+      lastAudioTime = Date.now();
+      lastAudioKey = audioKey;
+    }
+
+    function formatDuration(sec) {
+      sec = Math.floor(sec || 0);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${s < 10 ? "0" + s : s}`;
+    }
+
+    function addBubble(text, sender = "bot") {
+      const row = document.createElement("div");
+      row.className = `row ${sender}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+
+      const content = document.createElement("div");
+      content.textContent = text;
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.innerHTML = sender === "user"
+        ? `<span>${getTime()}</span><span class="check">✓✓</span>`
+        : `<span>${getTime()}</span>`;
+
+      bubble.appendChild(content);
+      bubble.appendChild(meta);
+      row.appendChild(bubble);
+      chat.appendChild(row);
+      scrollToBottom();
+    }
+
+    function addImageBubble(src, fileName = "imagen") {
+      const row = document.createElement("div");
+      row.className = "row preview";
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+
+      const preview = document.createElement("div");
+      preview.className = "image-preview";
+
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = fileName;
+
+      preview.appendChild(img);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.innerHTML = `<span>${getTime()}</span><span class="check">✓✓</span>`;
+
+      bubble.appendChild(preview);
+      bubble.appendChild(meta);
+      row.appendChild(bubble);
+      chat.appendChild(row);
+      scrollToBottom();
+    }
+
+    function addFileBubble(fileName) {
+      const row = document.createElement("div");
+      row.className = "row preview";
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+
+      const fileBox = document.createElement("div");
+      fileBox.className = "file-box";
+      fileBox.textContent = `📄 ${fileName}`;
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.innerHTML = `<span>${getTime()}</span><span class="check">✓✓</span>`;
+
+      bubble.appendChild(fileBox);
+      bubble.appendChild(meta);
+      row.appendChild(bubble);
+      chat.appendChild(row);
+      scrollToBottom();
+    }
+
+    function addAudioBubble(audioKey, sender = "bot", label = "audio") {
+      const row = document.createElement("div");
+      row.className = `row ${sender}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+
+      const audioWrap = document.createElement("div");
+      audioWrap.className = "audio-bubble";
+
+      const playBtn = document.createElement("button");
+      playBtn.className = "audio-play";
+      playBtn.textContent = "▶";
+
+      const wave = document.createElement("div");
+      wave.className = "audio-wave";
+
+      for (let i = 0; i < 18; i++) {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = `${6 + Math.floor(Math.random() * 16)}px`;
+        wave.appendChild(bar);
+      }
+
+      const time = document.createElement("div");
+      time.className = "audio-time";
+      time.textContent = "0:00";
+
+      const labelText = document.createElement("div");
+      labelText.className = "audio-label";
+      labelText.textContent = `🎤 ${label}`;
+
+      const audio = new Audio(audioFiles[audioKey]);
+      audio.preload = "metadata";
+
+      audio.addEventListener("loadedmetadata", () => {
+        if (!isNaN(audio.duration)) {
+          time.textContent = formatDuration(audio.duration);
+        }
+      });
+
+      playBtn.addEventListener("click", () => {
+        if (currentlyPlayingAudio && currentlyPlayingAudio !== audio) {
+          currentlyPlayingAudio.pause();
+          currentlyPlayingAudio.currentTime = 0;
+          document.querySelectorAll(".audio-play").forEach(btn => btn.textContent = "▶");
+        }
+
+        if (audio.paused) {
+          audio.play().then(() => {
+            currentlyPlayingAudio = audio;
+            playBtn.textContent = "⏸";
+          }).catch(() => {});
+        } else {
+          audio.pause();
+          playBtn.textContent = "▶";
+        }
+      });
+
+      audio.addEventListener("ended", () => {
+        playBtn.textContent = "▶";
+        currentlyPlayingAudio = null;
+      });
+
+      audioWrap.appendChild(playBtn);
+      audioWrap.appendChild(wave);
+      audioWrap.appendChild(time);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.innerHTML = sender === "user"
+        ? `<span>${getTime()}</span><span class="check">✓✓</span>`
+        : `<span>${getTime()}</span>`;
+
+      bubble.appendChild(audioWrap);
+      bubble.appendChild(labelText);
+      bubble.appendChild(meta);
+
+      row.appendChild(bubble);
+      chat.appendChild(row);
+      scrollToBottom();
+    }
+
+    function showTyping(callback, delay = 850) {
+      setStatus("escribiendo...");
+      const typing = document.createElement("div");
+      typing.className = "typing";
+      typing.id = "typingIndicator";
+      typing.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+      chat.appendChild(typing);
+      scrollToBottom();
+
+      setTimeout(() => {
+        const t = document.getElementById("typingIndicator");
+        if (t) t.remove();
+        setStatus("en línea");
+        callback();
+      }, delay);
+    }
+
+    function showRecordingStatus(duration = 1500, callback = null) {
+      setStatus("grabando audio...");
+      setTimeout(() => {
+        setStatus("en línea");
+        if (callback) callback();
+      }, duration);
+    }
+
+    function fakeSeenThenReply(callback) {
+      setStatus("en línea");
+      const seenDelay = 1800 + Math.random() * 2500;
+      setTimeout(() => {
+        showTyping(callback, 650 + Math.random() * 900);
+      }, seenDelay);
+    }
+
+    function sendTriggeredAudio(audioKey, introText = null, label = "audio") {
+      if (!canSendAudio()) return false;
+
+      showRecordingStatus(1200 + Math.random() * 1200, () => {
+        if (introText) addBubble(introText, "bot");
+        setTimeout(() => {
+          addAudioBubble(audioKey, "bot", label);
+          markAudioSent(audioKey);
+        }, introText ? 450 : 150);
+      });
+
+      return true;
+    }
+
+    function sendRandomAudio(reason = "random") {
+      if (!canSendAudio()) return false;
+
+      let pool = [1,2,3,4,5,6,7,8,9,10];
+      if (lastAudioKey && pool.length > 1) {
+        pool = pool.filter(x => x !== lastAudioKey);
+      }
+
+      const chosen = randomOf(pool);
+
+      showRecordingStatus(1200 + Math.random() * 1200, () => {
+        addBubble(pickUnique(randomAudioTextReplies), "bot");
+        setTimeout(() => {
+          addAudioBubble(chosen, "bot", `audio ${chosen} (${reason})`);
+          markAudioSent(chosen);
+        }, 450);
+      });
+
+      return true;
+    }
+
+    function tryAudioByMessage(text) {
+      const lower = text.toLowerCase();
+
+      if (
+        lower.includes("halcon manda un audio") ||
+        lower.includes("halcón manda un audio") ||
+        lower.includes("mandame un audio") ||
+        lower.includes("mandá audio") ||
+        lower.includes("manda un audio")
+      ) {
+        return sendRandomAudio("pedido");
+      }
+
+      if (
+        lower.includes("hablás mucha mierda") ||
+        lower.includes("hablas mucha mierda") ||
+        lower.includes("solo mierda hablás") ||
+        lower.includes("solo mierda hablas") ||
+        lower.includes("deja de hablar tanta mierda") ||
+        lower.includes("dejá de hablar tanta mierda")
+      ) {
+        return sendRandomAudio("por hablar mierda");
+      }
+
+      if (lower.includes("cara de pija")) {
+        return sendTriggeredAudio(2, "¿Ah sí, cara de pija? Tomá pues...", "cara de pija");
+      }
+
+      if (lower.includes("pendejo") || lower.includes("idiota") || lower.includes("bruto")) {
+        return sendTriggeredAudio(1, "¿Pendejo yo? Oíme bien, cerote...", "por pendejo");
+      }
+
+      if (lower.includes("cerote")) {
+        return sendTriggeredAudio(3, "¿Cerote yo? A ver si así aprendés...", "por cerote");
+      }
+
+      if (lower.includes("callate") || lower.includes("cállate") || lower.includes("shhh")) {
+        return sendTriggeredAudio(4, "Callame esta, basura...", "por callate");
+      }
+
+      if (lower.includes("te pisan") || lower.includes("te humillan") || lower.includes("te ganan")) {
+        return sendTriggeredAudio(5, "¿Quién me pisa, cerote? Escuchá esto...", "por te pisan");
+      }
+
+      return false;
+    }
+
+    function triggerChineseMode() {
+      if (chineseCooldown || autonomousTalking) return;
+
+      chineseCooldown = true;
+      autonomousTalking = true;
+
+      if (canSendAudio() && Math.random() < 0.55) {
+        setTimeout(() => {
+          addAudioBubble(8, "bot", "modo chino");
+          markAudioSent(8);
+        }, 700);
+      }
+
+      let delay = 500;
+      let linesToSend = 4 + Math.floor(Math.random() * 4);
+
+      for (let i = 0; i < linesToSend; i++) {
+        setTimeout(() => addBubble(pickUnique(chineseLines), "bot"), delay);
+        delay += 850 + Math.random() * 800;
+      }
+
+      setTimeout(() => { autonomousTalking = false; }, delay);
+      setTimeout(() => { chineseCooldown = false; }, 15000);
+    }
+
+    function maybeAutonomousMessage() {
+      if (autonomousTalking) return;
+      if (Math.random() < 0.07) {
+        autonomousTalking = true;
+        setTimeout(() => {
+          addBubble(pickUnique(autonomousRandom), "bot");
+          autonomousTalking = false;
+        }, 1800 + Math.random() * 2500);
+      }
+    }
+
+    function maybeAutonomousAudio() {
+      if (!canSendAudio()) return;
+      if (Math.random() < 0.08) {
+        setTimeout(() => {
+          sendRandomAudio("autónomo");
+        }, 2500 + Math.random() * 3500);
+      }
+    }
+
+    function generateReply(text) {
+      const lower = text.toLowerCase();
+
+      if (containsAny(lower, greetings)) return pickUnique(greetReplies);
+
+      if (detectRepeat(text)) {
+        anger += 2;
+        return pickUnique(repeatReplies);
+      }
+
+      if (containsAny(lower, provokeWords)) {
+        anger += 2;
+        return pickUnique(insultReplies);
+      }
+
+      if (lower.includes("te amo") || lower.includes("te quiero")) {
+        anger += 1;
+        return pickUnique(loveReplies);
+      }
+
+      if (lower.includes("quien sos") || lower.includes("quién sos") || lower.includes("quien eres") || lower.includes("quién eres")) {
+        anger += 1;
+        return "Soy HALCON0.1, cerote. Y si seguís jodiendo te ubico.";
+      }
+
+      if (lower.includes("sos ia") || lower.includes("eres ia") || lower.includes("sos bot") || lower.includes("eres bot")) {
+        return pickUnique(smartReplies);
+      }
+
+      if (lower.includes("chino") || lower.includes("china") || lower.includes("wua chuen")) {
+        anger += 2;
+        return "No me interrumpás, que ando aprendiendo chino, cerote.";
+      }
+
+      if (anger >= 7) {
+        const highAnger = [
+          "Ya me tenés harto, pendejo.",
+          "Cerote, vos sí sos necio.",
+          "Hoy andás buscando pleito, maje.",
+          "No te voy a mentir... ya me caés mal.",
+          "Qué paciencia la mía con vos, basura.",
+          "Seguí así y te mando otro audio, cerote."
+        ];
+        return pickUnique(highAnger);
+      }
+
+      return pickUnique(generalReplies);
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      addBubble(text, "user");
+      userInput.value = "";
+
+      userMessageCount++;
+      const words = countWords(text);
+      totalWords += words;
+
+      if (containsAny(text.toLowerCase(), provokeWords)) {
+        consecutiveProvokes++;
+      } else {
+        consecutiveProvokes = Math.max(0, consecutiveProvokes - 1);
+      }
+
+      userHistory.push(text.trim().toLowerCase());
+      if (userHistory.length > 12) userHistory.shift();
+
+      if (userMessageCount > 0 && userMessageCount % 20 === 0) {
+        if (sendTriggeredAudio(6, "Ya llegaste a 20 mensajes, cerote... qué necio sos.", "20 mensajes")) {
+          return;
+        }
+      }
+
+      if (autonomousTalking && Math.random() < 0.45) {
+        fakeSeenThenReply(() => {
+          addBubble(pickUnique([
+            "CALLATE, cerote...",
+            "No interrumpás, maje...",
+            "Wua chuen... comida china internacional...",
+            "Dejame terminar, pendejo..."
+          ]), "bot");
+        });
+        return;
+      }
+
+      if (tryAudioByMessage(text)) return;
+
+      if (consecutiveProvokes >= 3 && canSendAudio()) {
+        if (sendTriggeredAudio(7, "Vos sí jodés bastante, cerote... oíme esto.", "mucha jodedera")) {
+          consecutiveProvokes = 0;
+          return;
+        }
+      }
+
+      const shouldChinese =
+        totalWords >= 38 ||
+        text.length > 75 ||
+        (anger >= 6 && Math.random() < 0.35);
+
+      if (shouldChinese && Math.random() < 0.62) {
+        fakeSeenThenReply(() => {
+          addBubble("Dejá de joder cerote, ahorita estoy aprendiendo chino...", "bot");
+          triggerChineseMode();
+        });
+        if (totalWords >= 50) totalWords = 0;
+        return;
+      }
+
+      const shouldLeaveSeen = Math.random() < 0.18;
+
+      if (shouldLeaveSeen) {
+        setTimeout(() => {
+          addBubble(pickUnique(seenReplies), "bot");
+          maybeAutonomousMessage();
+          maybeAutonomousAudio();
+          if (totalWords >= 50) totalWords = 0;
+        }, 2200 + Math.random() * 3000);
+      } else {
+        showTyping(() => {
+          const reply = generateReply(text);
+          addBubble(reply, "bot");
+          maybeAutonomousMessage();
+          maybeAutonomousAudio();
+          if (totalWords >= 50) totalWords = 0;
+        }, 650 + Math.random() * 900);
+      }
+    }
+
+    function handleEmojiSend(emoji) {
+      addBubble(emoji, "user");
+      showTyping(() => {
+        const responses = emojiMap[emoji] || generalReplies;
+        addBubble(pickUnique(responses), "bot");
+      }, 500 + Math.random() * 600);
+      emojiPanel.style.display = "none";
+    }
+
+    function handleFileUpload(file) {
+      if (!file) return;
+
+      const isImage = file.type.startsWith("image/");
+
+      if (isImage) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          addImageBubble(e.target.result, file.name);
+
+          fakeSeenThenReply(() => {
+            addBubble(pickUnique(photoReplies), "bot");
+
+            if (canSendAudio() && Math.random() < 0.75) {
+              setTimeout(() => {
+                addAudioBubble(9, "bot", "por foto");
+                markAudioSent(9);
+              }, 500);
+            }
+
+            if (Math.random() < 0.25) {
+              setTimeout(() => {
+                addBubble(pickUnique([
+                  "No me mandés esas cosas otra vez, cerote.",
+                  "Qué espanto, maje.",
+                  "Vos sí sos creativo... para lo feo.",
+                  "Ni en pintura quería ver eso."
+                ]), "bot");
+              }, 1000);
+            }
+          });
+        };
+        reader.readAsDataURL(file);
+      } else {
+        addFileBubble(file.name);
+
+        fakeSeenThenReply(() => {
+          addBubble(pickUnique(fileReplies), "bot");
+
+          if (canSendAudio() && Math.random() < 0.55) {
+            setTimeout(() => {
+              addAudioBubble(9, "bot", "por archivo");
+              markAudioSent(9);
+            }, 500);
+          }
+        });
+      }
+
+      fileInput.value = "";
+    }
+
+    emojiBtn.addEventListener("click", () => {
+      emojiPanel.style.display = emojiPanel.style.display === "flex" ? "none" : "flex";
+    });
+
+    emojiItems.forEach(item => {
+      item.addEventListener("click", () => handleEmojiSend(item.textContent.trim()));
+    });
+
+    attachBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      handleFileUpload(file);
+    });
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    userInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    document.addEventListener("click", (e) => {
+      const clickedInsidePanel = emojiPanel.contains(e.target);
+      const clickedEmojiBtn = emojiBtn.contains(e.target);
+
+      if (!clickedInsidePanel && !clickedEmojiBtn) {
+        emojiPanel.style.display = "none";
+      }
+    });
+
+    setTimeout(() => {
+      showTyping(() => {
+        addBubble(firstReply, "bot");
+      }, 1100);
+    }, 500);
+  </script>
+</body>
+</html>
